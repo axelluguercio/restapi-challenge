@@ -14,7 +14,7 @@ metadata:
 {{ toYaml .Values.global.annotations | indent 8 }}
 {{ end }}
 spec:
-    replicas: {{ if or (.Values.canary.enabled) (and .Values.global.labels (eq .Values.global.labels.tipo "servicio-unico") (eq .Values.global.ocpenv "DCA")) }}0{{ else }}{{ .Values.global.replicaCount }}{{ end }}
+    replicas: {{ .Values.global.replicaCount }}
     revisionHistoryLimit: {{ .Values.global.revisionHistoryLimit }}
     minReadySeconds: {{ .Values.global.minReadySeconds }}
     selector:
