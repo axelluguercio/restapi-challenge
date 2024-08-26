@@ -1,0 +1,58 @@
+##### Esto es editable por el programador ##########
+variables:
+  own:
+    config: []
+    secret: []
+    secrets: []
+    routes: []
+
+  common:
+    config: []
+    secret: []
+
+####################################################
+
+global:
+  environment: "dev"
+  replicaCount: "1"
+  revisionHistoryLimit: "5"
+  minReadySeconds: "60"
+  version: "v1"
+  project: "creditoenlinea"
+  labels: {}
+  annotations: {}
+  serviceAccountName: "default"
+  progressDeadlineSeconds: 300
+
+container:
+  registry: "gcr.io"
+  tag: "2019.11.07-17.58.03"
+  pullPolicy: "IfNotPresent"
+  livenessProbe: {}
+  readinessProbe: {}
+  hostAliases: {}
+  imagePullSecrets: []
+  resources: {}
+  port:
+    - name: msa-port
+      servicePort: 80
+      containerPort: 8080
+      protocol: TCP
+  volumeMounts: []
+  topologySpreadConstraints: "disabled"
+  topologySpreadConstratintsCustom: []
+  nodeAffinity: []
+
+hpa:
+  minReplicas: 3
+  maxReplicas: 5
+  targetMemory: 1536Mi
+  targetCpu: 300m
+  metrics: []
+
+pdb:
+  minAvailable: 1
+
+volumes: []
+
+service: []

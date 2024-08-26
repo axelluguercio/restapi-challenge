@@ -1,0 +1,22 @@
+{{ if .Values.variables.own.config}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap-{{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    chart: {{ .Chart.Name }}
+    release: {{ .Release.Name }}
+{{ if .Values.global.labels}}
+{{- toYaml .Values.global.labels | indent 4 }}
+{{ end }}
+
+{{ if .Values.global.annotations}}
+  annotations:
+{{ toYaml .Values.global.annotations | indent 4 }}
+{{ end }}
+data:
+{{- range $key, $value := index .Values.variables.own.config  }}
+  {{ $value.name | lower | replace "_" "." }}: {{ $value.value | quote }}
+{{- end }}
+{{ end }}

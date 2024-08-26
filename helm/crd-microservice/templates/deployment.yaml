@@ -1,0 +1,146 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: deployment-{{ .Release.Name }}
+    namespace: {{ .Release.Namespace }}
+    labels:
+        chart: {{ .Chart.Name }}
+        release: {{ .Release.Name }}
+{{ if .Values.global.labels}}
+{{ toYaml .Values.global.labels | indent 8 }}
+{{ end }}
+{{ if .Values.global.annotations}}
+    annotations:
+{{ toYaml .Values.global.annotations | indent 8 }}
+{{ end }}
+spec:
+    replicas: {{ if or (.Values.canary.enabled) (and .Values.global.labels (eq .Values.global.labels.tipo "servicio-unico") (eq .Values.global.ocpenv "DCA")) }}0{{ else }}{{ .Values.global.replicaCount }}{{ end }}
+    revisionHistoryLimit: {{ .Values.global.revisionHistoryLimit }}
+    minReadySeconds: {{ .Values.global.minReadySeconds }}
+    selector:
+        matchLabels:
+            app: {{ .Release.Name }}
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxUnavailable: 0
+            maxSurge: 1
+    progressDeadlineSeconds: {{ .Values.global.progressDeadlineSeconds}}
+    template:
+        metadata:
+            labels:
+                app: {{ .Release.Name }}
+                version: {{ .Values.global.version }}
+{{ if .Values.global.labels}}
+{{- toYaml .Values.global.labels | indent 16 }}
+{{ end }}
+{{ if .Values.global.annotations}}
+            annotations:
+{{ toYaml .Values.global.annotations | indent 16 }}
+{{ end }}
+        spec:
+            serviceAccountName: {{ .Values.global.serviceAccountName }}
+{{ if .Values.container.hostAliases }}
+            hostAliases:
+{{ toYaml .Values.container.hostAliases | indent 15 }}
+{{ end }}
+{{ if .Values.container.imagePullSecrets}}
+            imagePullSecrets:
+{{ toYaml .Values.container.imagePullSecrets | indent 15 }}
+{{ end }}
+{{- if and (eq .Values.container.topologySpreadConstraints "enabled") (.Values.container.topologySpreadConstratintsCustom) }}
+  {{- fail "you are setting topologySpreadConstraints and topologySpreadConstraintsCustom just one must be set" }}
+{{- end }}
+{{- if or (eq .Values.container.topologySpreadConstraints "enabled") (.Values.container.topologySpreadConstratintsCustom) }}
+            topologySpreadConstraints:
+            {{- if eq .Values.container.topologySpreadConstraints "enabled" }}
+              - maxSkew: 1
+                topologyKey: kubernetes.io/hostname
+                whenUnsatisfiable: ScheduleAnyway
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - {{ $.Release.Name }}
+            {{- end }}
+{{- if .Values.container.topologySpreadConstratintsCustom }}
+{{ toYaml .Values.container.topologySpreadConstratintsCustom | indent 15 }}  
+{{- end }}
+{{- end }}
+{{- if .Values.container.nodeAffinity }} 
+            affinity:
+              nodeAffinity:
+{{ toYaml .Values.container.nodeAffinity | indent 16 }}         
+{{- end }}
+            containers:
+                - name: {{ .Release.Name }}
+                  image: {{ .Values.container.registry}}/{{ .Values.global.project }}/{{ .Release.Name }}:{{ .Values.container.tag }}
+                  imagePullPolicy: {{ .Values.container.pullPolicy }}
+{{ if .Values.container.securityContext}}    
+                  securityContext:
+{{ toYaml .Values.container.securityContext | indent 20 }}
+{{ end }}               
+                  livenessProbe:
+{{ toYaml .Values.container.livenessProbe | indent 20 }}
+                  readinessProbe:
+{{ toYaml .Values.container.readinessProbe | indent 20 }}
+                  resources:
+{{ toYaml .Values.container.resources | indent 20 }}
+                  ports:
+                  {{- range $key, $value := index .Values.container.port  }}
+                      - name: {{ $value.name }}
+                        containerPort: {{ $value.containerPort}}
+                  {{- end }}
+                  {{- if .Values.service }}
+                  {{- range $key, $value := index .Values.service.ports  }}
+                      - name: {{ $value.name }}
+                        containerPort: {{ $value.containerPort}}
+                  {{- end }}
+                  {{- end }}
+                  env:
+                  {{- range $key, $value := index .Values.variables.own.config  }}
+                      - name: {{ $value.name }}
+                        valueFrom:
+                            configMapKeyRef:
+                                name: configmap-{{ $.Release.Name }}
+                                key: {{ $value.name | lower | replace "_" "." }}
+                  {{- end }}
+                  {{- range $key, $value := index .Values.variables.own.secret  }}
+                      - name: {{ $value.name }}
+                        valueFrom:
+                            secretKeyRef:
+                                name: secret-{{ $.Release.Name }}
+                                key: {{ $value.name | lower | replace "_" "." }}
+                  {{- end }}
+                  {{- range $key, $value := index .Values.variables.common.config  }}
+                      - name: {{ $value.name }}
+                        valueFrom:
+                            configMapKeyRef:
+                                name: configmap-{{ $.Release.Namespace }}
+                                key: {{ $value.name | lower | replace "_" "." }}
+                  {{- end }}
+                  {{- range $key, $value := index .Values.variables.common.secret  }}
+                      - name: {{ $value.name }}
+                        valueFrom:
+                            secretKeyRef:
+                                name: secret-{{ $.Release.Namespace }}
+                                key: {{ $value.name | lower | replace "_" "." }}
+                  {{- end }}
+                  {{- range $key, $secret := index .Values.variables.own.secrets }}
+                  {{- range $key, $secretref := index $secret.refs }}
+                      - name: {{ $secretref.name }}
+                        valueFrom:
+                            secretKeyRef:
+                                name: secret-{{ $.Release.Name }}-{{ $secret.secretstore }}
+                                key: {{ $secretref.name | lower | replace "_" "." }}
+                  {{- end }}                      
+                  {{- end }}
+{{ if .Values.container.volumeMounts}}
+                  volumeMounts:
+{{ toYaml .Values.container.volumeMounts | indent 20 }}
+{{ end }}
+{{ if .Values.volumes}}
+            volumes:
+{{ toYaml .Values.volumes | indent 15 }}
+{{ end }}

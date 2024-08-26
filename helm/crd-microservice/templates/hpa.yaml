@@ -1,0 +1,38 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+    name: hpa-{{ .Release.Name }}
+    namespace: {{ .Release.Namespace }}
+    labels:
+        chart: {{ .Chart.Name }}
+        release: {{ .Release.Name }}
+{{ if .Values.global.labels}}
+{{- toYaml .Values.global.labels | indent 8 }}
+{{ end }}
+{{ if .Values.global.annotations}}
+    annotations:
+{{ toYaml .Values.global.annotations | indent 8 }}
+{{ end }}
+spec:
+    scaleTargetRef:
+        apiVersion: apps/v1
+        kind: Deployment
+        name: deployment-{{ .Release.Name }}
+    {{- if and .Values.global.labels (eq .Values.global.labels.tipo "servicio-unico") (eq .Values.global.ocpenv "DCA") }}
+    minReplicas: 0
+    maxReplicas: 0
+    {{- else }}
+    minReplicas: {{ .Values.hpa.minReplicas }}
+    maxReplicas: {{ .Values.hpa.maxReplicas }}
+    {{- end }}
+    metrics:
+{{- if .Values.hpa.metrics }}
+{{ toYaml .Values.hpa.metrics | indent 8 }}
+{{- else }}
+        - type: Resource
+          resource:
+              name: memory
+              target:
+                type: AverageValue
+                averageValue: {{ .Values.hpa.targetMemory }}
+{{- end }}

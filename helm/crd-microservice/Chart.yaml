@@ -1,0 +1,12 @@
+apiVersion: v2
+name: crd-microservice
+version: 1.0.0
+description: A deployment for backend services
+keywords:
+  - https
+  - microservices
+  - rest
+maintainers: # (optional)
+  - name: Axel Luguercio
+    email: axelluguercio@gmail.com
+    url: https://github.com/axelluguercio

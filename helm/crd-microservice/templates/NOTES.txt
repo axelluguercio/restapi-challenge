@@ -1,0 +1,22 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+---------------------------
+
+!! Advertencias !!
+{{ if or (eq .Values.global.environment "prod") (eq .Values.global.environment "production") }}
+{{ if and (lt (.Values.pdb.minAvailable | int )  (.Values.global.replicaCount | int)) (lt (.Values.pdb.minAvailable | int )  (.Values.hpa.minReplicas | int)) }}
+Pod Disruption Budget
+
+Los Pod Disruption Budget se crean en ambientes productivos, en este caso no se creo ya que el minReplicas del hpa y/o
+el numero de replicas del deployment (global replicaCount) es igual al numero minimo de replicas que solicita el PDB 
+(pdb minAvailable), si  necesitas desplegar PDB revisa el archivo helm y configura el numero de replicas del deployment 
+y/o el minReplicas del HPA a que sean mayor al numero minimo de replicas configurado en el PDB.
+{{ end }}
+{{ end }}

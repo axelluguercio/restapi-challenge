@@ -1,0 +1,24 @@
+{{ if or (eq .Values.global.environment "prod") (eq .Values.global.environment "production") }}
+{{ if and (lt (.Values.pdb.minAvailable | int )  (.Values.global.replicaCount | int)) (lt (.Values.pdb.minAvailable | int )  (.Values.hpa.minReplicas | int)) }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pdb-{{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    chart: {{ .Chart.Name }}
+    release: {{ .Release.Name }}
+{{ if .Values.global.labels}}
+{{- toYaml .Values.global.labels | indent 4 }}
+{{ end }}
+{{ if .Values.global.annotations}}
+  annotations:
+{{ toYaml .Values.global.annotations | indent 4 }}
+{{ end }}
+spec:
+  minAvailable: {{ if and .Values.global.labels (eq .Values.global.labels.tipo "servicio-unico") (eq .Values.global.ocpenv "DCA") }}0{{ else }}{{ .Values.pdb.minAvailable }}{{ end }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+{{ end }}
+{{ end }}
