@@ -18,10 +18,6 @@ spec:
         apiVersion: apps/v1
         kind: Deployment
         name: deployment-{{ .Release.Name }}
-    {{- if and .Values.global.labels (eq .Values.global.labels.tipo "servicio-unico") (eq .Values.global.ocpenv "DCA") }}
-    minReplicas: 0
-    maxReplicas: 0
-    {{- else }}
     minReplicas: {{ .Values.hpa.minReplicas }}
     maxReplicas: {{ .Values.hpa.maxReplicas }}
     {{- end }}
