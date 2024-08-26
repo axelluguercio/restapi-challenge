@@ -1,0 +1,8 @@
+# Basic prometheus scrape job
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'flask-app'
+    static_configs:
+      - targets: ['web:8001']
