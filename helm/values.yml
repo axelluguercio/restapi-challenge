@@ -1,0 +1,71 @@
+##### environments and secrets setup ##########
+variables:
+  own:
+    config:
+      - name:  "DB_NAME"
+        value: "leyline" 
+      - name:  "DB_HOST"
+        value: "example" 
+    secret:
+      - name: "USER"
+        # External secret ref example
+        location: USER
+      - name: "PASSWORD"
+        # External secret ref example
+        location: PASSWORD
+
+####### Global config - readniss and probeness #######
+
+global:
+  environment: "development"
+  replicaCount: "1"
+  revisionHistoryLimit: "5"
+  minReadySeconds: "0"
+  version: "v1"
+
+container:
+  registry: "docker.io"
+  tag: "2019.11.25-16.30.32"
+  pullPolicy: "IfNotPresent"
+  livenessProbe:
+    exec:
+      command:
+        - /bin/sh
+        - -c
+        - |
+          if [ "$(curl -s http://localhost:3000/health | cut -d "{" -f 2 | cut -d "}" -f 1 | cut -d "," -f 1 )" != '"status":"UP"' ];then exit 1; fi
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    failureThreshold: 12
+  readinessProbe:
+    exec:
+      command:
+        - /bin/sh
+        - -c
+        - |
+          if [ "$(curl -s http://localhost:3000/health | cut -d "{" -f 2 | cut -d "}" -f 1 | cut -d "," -f 1 )" != '"status":"UP"' ];then exit 1; fi
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    failureThreshold: 12
+  resources:
+    requests:
+      cpu: 5m
+      memory: 3004Mi
+    limits:
+      memory: 800Mi
+  port:
+    - name: msa-port
+      servicePort: 80
+      containerPort: 3000
+      protocol: TCP
+  volumeMounts: {}
+
+hpa:
+  minReplicas: 2
+  maxReplicas: 4
+  targetMemory: 720Mi
+
+pdb:
+  minAvailable: 2
+
+volumes: {}
