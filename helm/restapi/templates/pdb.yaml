@@ -16,7 +16,7 @@ metadata:
 {{ toYaml .Values.global.annotations | indent 4 }}
 {{ end }}
 spec:
-  minAvailable: {{ if and .Values.global.labels (eq .Values.global.labels.tipo "servicio-unico") (eq .Values.global.ocpenv "DCA") }}0{{ else }}{{ .Values.pdb.minAvailable }}{{ end }}
+  minAvailable: {{ .Values.pdb.minAvailable }}
   selector:
     matchLabels:
       app: {{ .Release.Name }}
