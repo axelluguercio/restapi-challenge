@@ -1,58 +1,71 @@
-##### Esto es editable por el programador ##########
+##### environments and secrets setup ##########
 variables:
   own:
-    config: []
-    secret: []
-    secrets: []
-    routes: []
+    config:
+      - name:  "DB_NAME"
+        value: "leyline" 
+      - name:  "DB_HOST"
+        value: "example" 
+    secret:
+      - name: "USER"
+        # External secret ref example
+        location: USER
+      - name: "PASSWORD"
+        # External secret ref example
+        location: PASSWORD
 
-  common:
-    config: []
-    secret: []
-
-####################################################
+####### Global config - readniss and probeness #######
 
 global:
-  environment: "dev"
+  environment: "development"
   replicaCount: "1"
   revisionHistoryLimit: "5"
-  minReadySeconds: "60"
+  minReadySeconds: "0"
   version: "v1"
-  project: "creditoenlinea"
-  labels: {}
-  annotations: {}
-  serviceAccountName: "default"
-  progressDeadlineSeconds: 300
 
 container:
-  registry: ""
-  tag: "2019.11.07-17.58.03"
+  registry: "docker.io"
+  tag: "2019.11.25-16.30.32"
   pullPolicy: "IfNotPresent"
-  livenessProbe: {}
-  readinessProbe: {}
-  hostAliases: {}
-  imagePullSecrets: []
-  resources: {}
+  livenessProbe:
+    exec:
+      command:
+        - /bin/sh
+        - -c
+        - |
+          if [ "$(curl -s http://localhost:3000/health | cut -d "{" -f 2 | cut -d "}" -f 1 | cut -d "," -f 1 )" != '"status":"UP"' ];then exit 1; fi
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    failureThreshold: 12
+  readinessProbe:
+    exec:
+      command:
+        - /bin/sh
+        - -c
+        - |
+          if [ "$(curl -s http://localhost:3000/health | cut -d "{" -f 2 | cut -d "}" -f 1 | cut -d "," -f 1 )" != '"status":"UP"' ];then exit 1; fi
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    failureThreshold: 12
+  resources:
+    requests:
+      cpu: 5m
+      memory: 3004Mi
+    limits:
+      memory: 800Mi
   port:
     - name: msa-port
       servicePort: 80
-      containerPort: 8080
+      containerPort: 3000
       protocol: TCP
-  volumeMounts: []
-  topologySpreadConstraints: "disabled"
-  topologySpreadConstratintsCustom: []
-  nodeAffinity: []
+  volumeMounts: {}
 
 hpa:
-  minReplicas: 3
-  maxReplicas: 5
-  targetMemory: 1536Mi
-  targetCpu: 300m
-  metrics: []
+  minReplicas: 2
+  maxReplicas: 4
+  targetMemory: 720Mi
 
 pdb:
-  minAvailable: 1
+  minAvailable: 2
 
-volumes: []
-
-service: []
+volumes: {}

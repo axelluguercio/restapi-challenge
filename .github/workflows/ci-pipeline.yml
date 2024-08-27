@@ -55,3 +55,21 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/restapi-challenge:${{ env.sha }} .
           docker push ${{ secrets.DOCKER_USERNAME }}/restapi-challenge:${{ env.sha }}
+
+  package:
+    name: Package Helm Chart
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Package helm chart
+        run: |
+          helm package ./helm/crd-microservice
+
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v2
+        with:
+          name: helm-chart-package
+          path: ./crd-restapi.tar.gz
