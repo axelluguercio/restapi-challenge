@@ -30,3 +30,16 @@ The CI pipeline run a python linter using flake8, build the docker image and pus
 ## Kubernetes
 
 Custom helm chart for backend service, using external secrets for secrets, multiple cloud provider supported (Azure, Aws, GCP)
+
+## Usage
+
+```bash
+
+# Export environment variables
+export DB_NAME=<REPLACE>
+export USER=<REPLACE>
+export PASSWORD=<REPLACE>
+
+# Run docker compose
+docker-compose up -d --build
+```

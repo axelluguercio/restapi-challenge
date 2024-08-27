@@ -1,5 +1,5 @@
 apiVersion: v2
-name: crd-microservice
+name: restapi
 version: 1.0.0
 description: A deployment for backend services
 keywords:
