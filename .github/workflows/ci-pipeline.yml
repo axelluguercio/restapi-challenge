@@ -54,4 +54,4 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           docker build -t restapi-challenge:${{ env.sha }} .
-          docker push ${{ secrets.DOCKER_USERNAME }}/restapi-challenge:${{ env.sha }}
+          docker push restapi-challenge:${{ env.sha }}
