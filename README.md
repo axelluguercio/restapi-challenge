@@ -21,6 +21,7 @@ This project implements a REST API based on the provided OpenAPI/Swagger definit
   "date": 1663534325,
   "kubernetes": false
 }
+```
 
 ## CI Pipeline
 
