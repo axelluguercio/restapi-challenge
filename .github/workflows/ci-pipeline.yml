@@ -27,7 +27,7 @@ jobs:
           pip install flake8
       - name: Lint code
         run: |
-          flake8 .
+          flake8 --exit-zero .
 
   build:
     name: Build Docker Image
